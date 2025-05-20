@@ -140,7 +140,135 @@ const ValantiApp = () => {
       });
     }
      // Limpiar el gráfico al desmontar el componente o si los resultados se borran
-    return () => {
+    return (<div className="max-w-5xl mx-auto p-4 font-sans text-gray-800">
+
+<Card className="mb-6 shadow-lg border border-gray-300 rounded-xl">
+
+<CardContent>
+
+<h2 className="text-3xl font-bold mb-4 text-center uppercase tracking-wide text-blue-800">
+
+CUESTIONARIO
+
+</h2>
+
+<p className="text-sm mb-6 text-gray-700 leading-relaxed bg-gray-50 p-3 rounded border border-gray-200">
+
+Por favor marque cero, uno, dos o tres puntos en las casillas del centro, según la importancia que usted le da a cada frase en su vida personal.
+
+Las opciones de respuestas son: 3-0, 0-3, 2-1, 1-2. Siempre la suma de puntos en las dos casillas debe ser 3.
+
+</p>
+
+
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+{formData.responses.map((resp, idx) => (
+
+<div key={idx} className="flex flex-col bg-white border border-gray-200 rounded p-4 shadow-sm">
+
+{idx === 9 && (
+
+<div className="col-span-2 p-4 bg-blue-100 border border-blue-300 rounded-md text-sm text-blue-900 font-medium mb-4">
+
+<p className="uppercase font-bold mb-2">Segunda Parte</p>
+
+<p>
+
+Por favor, marque cero, uno, dos o tres en las casillas del centro, para la frase más inaceptable, según su juicio.
+
+El puntaje más alto será para la frase que indique lo peor. Las únicas opciones de respuesta son: 3-0, 0-3, 2-1, 1-2. La suma de las casillas debe ser 3.
+
+</p>
+
+</div>
+
+)}
+
+<label className="text-sm font-semibold text-gray-800 mb-1">
+
+{idx + 1}. {preguntas[idx][0]} / {preguntas[idx][1]}
+
+</label>
+
+<div className="flex gap-2">
+
+<Input
+
+type="number"
+
+min="0"
+
+max="3"
+
+placeholder="A"
+
+value={resp.a}
+
+className={`w-full ${formData.invalids[idx] ? 'border-red-500 ring-red-500 focus-visible:ring-red-500' : ''}`}
+
+onChange={(e) => handleResponseChange(idx, "a", e.target.value)}
+
+/>
+
+<Input
+
+type="number"
+
+placeholder="B"
+
+value={resp.b}
+
+readOnly
+
+className="w-full bg-gray-100"
+
+/>
+
+</div>
+
+{formData.invalids[idx] && (
+
+<span className="text-red-600 text-xs mt-1">
+
+Valor inválido. Debe ser entre 0 y 3.
+
+</span>
+
+)}
+
+</div>
+
+))}
+
+</div>
+
+</CardContent>
+
+</Card>
+
+
+
+<div className="text-center mb-6">
+
+<Button
+
+onClick={handleSubmit}
+
+disabled={formData.invalids.some(i => i) || formData.responses.some(r => r.a === "" || r.b === "")}
+
+className="disabled:opacity-50 disabled:cursor-not-allowed"
+
+>
+
+Calcular y mostrar resultados
+
+</Button>
+
+</div>
+
+</div>) => {
         if (window.radarChartValanti instanceof ChartJS) {
             window.radarChartValanti.destroy();
         }
