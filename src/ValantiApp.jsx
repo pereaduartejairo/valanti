@@ -1,17 +1,17 @@
 // Componente principal de la App
 import React, { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button"; // Asegúrate que la ruta sea correcta
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"; // Asegúrate que la ruta sea correcta
+import { Input } from "@/components/ui/input"; // Asegúrate que la ruta sea correcta
+import { Label } from "@/components/ui/label"; // Componente Label, usualmente parte de ShadCN/UI
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Para el campo 'sexo'
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  BarElement, // Aunque no se usa Bar, se mantiene por si se necesita en el futuro o para completitud
   Title,
   Tooltip,
   Legend,
@@ -36,8 +36,9 @@ ChartJS.register(
   Filler
 );
 
+// Estilos (puedes usarlos o definir otros según tu CSS/UI framework)
 const labelStyle = "font-semibold text-gray-700 block mb-1";
-const inputStyle = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50";
+const inputStyle = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"; // Estilo genérico si no usas ShadCN Input directamente
 
 const preguntas = [
   ["Muestro dedicación a las personas que amo", "Actuo con perseverancia"],
@@ -79,15 +80,15 @@ const ValantiApp = () => {
     sex: "",
     education: "",
     position: "",
-    responses: Array.from({ length: preguntas.length }, () => ({ a: "", b: "" })),
-    invalids: Array.from({ length: preguntas.length }, () => false),
+    responses: Array(preguntas.length).fill({ a: "", b: "" }), // Usar preguntas.length
+    invalids: Array(preguntas.length).fill(false), // Usar preguntas.length
   });
 
   const [results, setResults] = useState(null);
-  const chartRef = useRef(null);
-  const resultsCardRef = useRef(null);
+  const chartRef = useRef(null); // Referencia para el canvas del gráfico
+  const resultsCardRef = useRef(null); // Referencia para la tarjeta de resultados para el PDF
 
-  // Dibuja el gráfico cuando cambian los resultados
+  // Efecto para dibujar el gráfico cuando los resultados cambian
   useEffect(() => {
     if (results && chartRef.current) {
       const ctx = chartRef.current.getContext("2d");
@@ -109,21 +110,21 @@ const ValantiApp = () => {
           ],
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, // Hacerlo responsive
+          maintainAspectRatio: false, // Para controlar mejor el tamaño con un div contenedor
           scales: {
             r: {
               beginAtZero: true,
-              suggestedMin: 0,
-              suggestedMax: 100,
-              ticks: {
-                stepSize: 20
-              },
-              pointLabels: {
-                font: {
-                  size: 10
-                }
-              }
+              suggestedMin: 0, // Ajusta según necesidad
+              suggestedMax: 100, // Ajusta según necesidad
+               ticks: {
+                 stepSize: 20 // Ajusta el tamaño del paso si es necesario
+               },
+               pointLabels: {
+                 font: {
+                    size: 10 // Tamaño de la fuente para las etiquetas de los ejes
+                 }
+               }
             },
           },
           plugins: {
@@ -138,13 +139,142 @@ const ValantiApp = () => {
         },
       });
     }
-    // Limpia el gráfico al desmontar o actualizar
-    return () => {
-      if (window.radarChartValanti instanceof ChartJS) {
-        window.radarChartValanti.destroy();
-      }
+     // Limpiar el gráfico al desmontar el componente o si los resultados se borran
+    return (<div className="max-w-5xl mx-auto p-4 font-sans text-gray-800">
+
+<Card className="mb-6 shadow-lg border border-gray-300 rounded-xl">
+
+<CardContent>
+
+<h2 className="text-3xl font-bold mb-4 text-center uppercase tracking-wide text-blue-800">
+
+CUESTIONARIO
+
+</h2>
+
+<p className="text-sm mb-6 text-gray-700 leading-relaxed bg-gray-50 p-3 rounded border border-gray-200">
+
+Por favor marque cero, uno, dos o tres puntos en las casillas del centro, según la importancia que usted le da a cada frase en su vida personal.
+
+Las opciones de respuestas son: 3-0, 0-3, 2-1, 1-2. Siempre la suma de puntos en las dos casillas debe ser 3.
+
+</p>
+
+
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+{formData.responses.map((resp, idx) => (
+
+<div key={idx} className="flex flex-col bg-white border border-gray-200 rounded p-4 shadow-sm">
+
+{idx === 9 && (
+
+<div className="col-span-2 p-4 bg-blue-100 border border-blue-300 rounded-md text-sm text-blue-900 font-medium mb-4">
+
+<p className="uppercase font-bold mb-2">Segunda Parte</p>
+
+<p>
+
+Por favor, marque cero, uno, dos o tres en las casillas del centro, para la frase más inaceptable, según su juicio.
+
+El puntaje más alto será para la frase que indique lo peor. Las únicas opciones de respuesta son: 3-0, 0-3, 2-1, 1-2. La suma de las casillas debe ser 3.
+
+</p>
+
+</div>
+
+)}
+
+<label className="text-sm font-semibold text-gray-800 mb-1">
+
+{idx + 1}. {preguntas[idx][0]} / {preguntas[idx][1]}
+
+</label>
+
+<div className="flex gap-2">
+
+<Input
+
+type="number"
+
+min="0"
+
+max="3"
+
+placeholder="A"
+
+value={resp.a}
+
+className={`w-full ${formData.invalids[idx] ? 'border-red-500 ring-red-500 focus-visible:ring-red-500' : ''}`}
+
+onChange={(e) => handleResponseChange(idx, "a", e.target.value)}
+
+/>
+
+<Input
+
+type="number"
+
+placeholder="B"
+
+value={resp.b}
+
+readOnly
+
+className="w-full bg-gray-100"
+
+/>
+
+</div>
+
+{formData.invalids[idx] && (
+
+<span className="text-red-600 text-xs mt-1">
+
+Valor inválido. Debe ser entre 0 y 3.
+
+</span>
+
+)}
+
+</div>
+
+))}
+
+</div>
+
+</CardContent>
+
+</Card>
+
+
+
+<div className="text-center mb-6">
+
+<Button
+
+onClick={handleSubmit}
+
+disabled={formData.invalids.some(i => i) || formData.responses.some(r => r.a === "" || r.b === "")}
+
+className="disabled:opacity-50 disabled:cursor-not-allowed"
+
+>
+
+Calcular y mostrar resultados
+
+</Button>
+
+</div>
+
+</div>) => {
+        if (window.radarChartValanti instanceof ChartJS) {
+            window.radarChartValanti.destroy();
+        }
     };
   }, [results, formData.name]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -154,38 +284,31 @@ const ValantiApp = () => {
   const handleSelectChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
   };
-
-  // Corrige lógica y firma
-  const handleResponseChange = (index, field, value) => {
-    let numValue = parseInt(value, 10);
+  
+  const handleResponseChange = (index, value) => {
+    let numValue = parseInt(value);
     const updatedInvalids = [...formData.invalids];
     const updatedResponses = [...formData.responses];
 
     if (isNaN(numValue) || numValue < 0 || numValue > 3) {
+      alert("Por favor ingrese un valor entre 0 y 3.");
       updatedInvalids[index] = true;
+      // Podrías resetear el valor o mantener el antiguo
+      // updatedResponses[index] = { a: "", b: "" }; // Opción: resetear
     } else {
       updatedInvalids[index] = false;
-      if (field === "a") {
-        updatedResponses[index] = {
-          a: numValue.toString(),
-          b: (3 - numValue).toString()
-        };
-      } else if (field === "b") {
-        updatedResponses[index] = {
-          b: numValue.toString(),
-          a: (3 - numValue).toString()
-        };
-      }
+      updatedResponses[index] = { a: numValue.toString(), b: (3 - numValue).toString() };
     }
     setFormData((prev) => ({ ...prev, responses: updatedResponses, invalids: updatedInvalids }));
   };
 
   const getInterpretation = (standardScores) => {
     const entries = Object.entries(standardScores);
+    // Filtrar entradas no numéricas o NaN antes de ordenar
     const validEntries = entries.filter(([key, value]) => typeof value === 'number' && !isNaN(value));
 
     if (validEntries.length === 0) {
-      return "No hay datos suficientes para generar una interpretación.";
+        return "No hay datos suficientes para generar una interpretación.";
     }
 
     const sorted = [...validEntries].sort(([, valA], [, valB]) => valB - valA);
@@ -199,4 +322,299 @@ const ValantiApp = () => {
       Verdad: [1, 7, 13, 19, 25],
       Rectitud: [2, 8, 14, 20, 26],
       Paz: [3, 9, 15, 21, 27],
-      Amor: [4, 10, 16
+      Amor: [4, 10, 16, 22, 28],
+      "No violencia": [5, 11, 17, 23, 29],
+    };
+  
+    const directScores = {
+      Verdad: 0,
+      Rectitud: 0,
+      Paz: 0,
+      Amor: 0,
+      "No violencia": 0,
+    };
+  
+    Object.keys(traits).forEach((trait) => {
+      traits[trait].forEach((qIndex) => {
+        // qIndex es 1-based, formData.responses es 0-based
+        if (qIndex -1 < formData.responses.length) {
+            const answer = formData.responses[qIndex - 1];
+            // Asegurarse que a y b sean números antes de sumarlos
+            const a = parseInt(answer.a);
+            // const b = parseInt(answer.b); // b se calcula a partir de a, y la suma a+b siempre será 3 si a está entre 0 y 3.
+                                         // La lógica original suma a y b, lo que implica que cada pregunta contribuye con '3' al puntaje directo del trait.
+                                         // Si la intención es que solo 'a' contribuya, entonces la suma sería: directScores[trait] += a;
+            if (!isNaN(a)) { // Solo sumar si 'a' es un número válido.
+                 directScores[trait] += 3; // Asumiendo que cada respuesta completa (A+B) suma 3 al puntaje.
+                                           // Si solo A cuenta, sería directScores[trait] += a;
+            }
+        }
+      });
+    });
+  
+    const nationalAverages = {
+      Verdad: 15.65, Rectitud: 21.05, Paz: 17.35, Amor: 16.68, "No violencia": 21.22,
+    };
+  
+    const standardDevs = {
+      Verdad: 4.7, Rectitud: 4.44, Paz: 6.61, Amor: 5.41, "No violencia": 7.19,
+    };
+  
+    const standardScores = {};
+    Object.keys(directScores).forEach((trait) => {
+      const z = (directScores[trait] - nationalAverages[trait]) / standardDevs[trait];
+      standardScores[trait] = Math.round(z * 10 + 50);
+    });
+  
+    const interpretation = getInterpretation(standardScores);
+    setResults({ directScores, standardScores, interpretation });
+  };
+
+  const handleSubmit = () => {
+    const hasEmptyFields = Object.values(formData)
+        .slice(0, 5) // Solo los primeros 5 campos de información personal
+        .some(value => typeof value === 'string' && value.trim() === "");
+
+    if (hasEmptyFields) {
+        alert("Por favor complete todos los campos de información personal.");
+        return;
+    }
+
+    const hasEmptyResponses = formData.responses.some(r => r.a === "" || r.b === "");
+    const hasInvalidResponses = formData.invalids.some(i => i);
+    
+    if (hasEmptyResponses) {
+        alert("Por favor complete todas las respuestas del cuestionario.");
+        return;
+    }
+    if (hasInvalidResponses) {
+        alert("Hay respuestas inválidas. Por favor, corrija los valores (deben estar entre 0 y 3).");
+        return;
+    }
+    calculateScores();
+  };
+  
+  const handleDownloadPDF = async () => {
+    if (!results) {
+      alert("Primero calcula los resultados.");
+      return;
+    }
+  
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const margin = 15;
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const usableWidth = pageWidth - 2 * margin;
+    let y = margin;
+  
+    pdf.setFontSize(16);
+    pdf.text("Hoja de Resultados - Cuestionario VALANTI", pageWidth / 2, y, { align: 'center' });
+    y += 10;
+  
+    pdf.setFontSize(10);
+    pdf.text(`Nombre: ${formData.name}`, margin, y);
+    pdf.text(`Edad: ${formData.age}`, pageWidth / 2, y);
+    y += 7;
+    pdf.text(`Sexo: ${formData.sex}`, margin, y);
+    pdf.text(`Educación: ${formData.education}`, pageWidth / 2, y);
+    y += 7;
+    pdf.text(`Cargo: ${formData.position}`, margin, y);
+    y += 10;
+  
+    pdf.setFontSize(12);
+    pdf.text("Respuestas del Cuestionario (Valor A / Valor B)", margin, y);
+    y += 7;
+    pdf.setFontSize(9);
+  
+    const halfIndex = Math.ceil(preguntas.length / 2);
+    for (let i = 0; i < halfIndex; i++) {
+      const resp1 = formData.responses[i];
+      const text1 = `${i + 1}. ${preguntas[i][0].substring(0,25)}... / ${preguntas[i][1].substring(0,25)}... : (${resp1.a}/${resp1.b})`;
+      pdf.text(text1, margin, y);
+  
+      if (i + halfIndex < preguntas.length) {
+        const resp2 = formData.responses[i + halfIndex];
+        const text2 = `${i + halfIndex + 1}. ${preguntas[i+halfIndex][0].substring(0,25)}... / ${preguntas[i+halfIndex][1].substring(0,25)}... : (${resp2.a}/${resp2.b})`;
+        pdf.text(text2, pageWidth / 2 , y);
+      }
+      y += 5;
+      if (y > pdf.internal.pageSize.getHeight() - margin - 10) { // Check for page end
+        pdf.addPage();
+        y = margin;
+      }
+    }
+    y += 5; // Espacio extra
+     if (y > pdf.internal.pageSize.getHeight() - margin - 70) { // Previsión para la sección de puntajes
+        pdf.addPage();
+        y = margin;
+    }
+
+    pdf.setFontSize(12);
+    pdf.text("Puntajes por Valor", margin, y);
+    y += 7;
+    pdf.setFontSize(10);
+    Object.entries(results.directScores).forEach(([valor, puntaje]) => {
+      pdf.text(`${valor}: Puntaje directo: ${puntaje}, Puntaje estándar: ${results.standardScores[valor]}`, margin, y);
+      y += 6;
+       if (y > pdf.internal.pageSize.getHeight() - margin) { 
+        pdf.addPage();
+        y = margin;
+      }
+    });
+    y += 5;
+  
+    pdf.setFontSize(12);
+    pdf.text("Interpretación:", margin, y);
+    y += 7;
+    pdf.setFontSize(10);
+    const splitText = pdf.splitTextToSize(results.interpretation, usableWidth);
+    pdf.text(splitText, margin, y);
+    y += splitText.length * 4 + 5; // Ajustar según el tamaño de fuente y líneas
+  
+    // Añadir gráfico
+    if (chartRef.current) {
+      try {
+        const canvasImage = await html2canvas(chartRef.current, { scale: 2 }); // Aumentar escala para mejor calidad
+        const imgData = canvasImage.toDataURL("image/png");
+        
+        if (y + 100 > pdf.internal.pageSize.getHeight() - margin) { // Espacio para el gráfico (100mm de alto aprox)
+            pdf.addPage();
+            y = margin;
+        }
+        pdf.addImage(imgData, "PNG", margin, y, usableWidth - 20 , (usableWidth-20) * (canvasImage.height/canvasImage.width) ); // Ajustar tamaño y mantener proporción
+      } catch (error) {
+        console.error("Error generando imagen del gráfico:", error);
+        pdf.text("No se pudo generar el gráfico en el PDF.", margin, y);
+      }
+    }
+    
+    pdf.save(`valanti-resultados-${formData.name.replace(/\s+/g, '_') || 'usuario'}.pdf`);
+  };
+  
+
+  return (
+    <div className="container mx-auto p-4 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">Cuestionario VALANTI</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="name" className={labelStyle}>Nombre Completo:</Label>
+            <Input id="name" name="name" value={formData.name} onChange={handleInputChange} className={inputStyle} placeholder="Tu nombre"/>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="age" className={labelStyle}>Edad:</Label>
+              <Input id="age" name="age" type="number" value={formData.age} onChange={handleInputChange} className={inputStyle} placeholder="Tu edad"/>
+            </div>
+            <div>
+              <Label htmlFor="sex" className={labelStyle}>Sexo:</Label>
+              <Select name="sex" onValueChange={(value) => handleSelectChange('sex', value)} value={formData.sex}>
+                <SelectTrigger className={inputStyle}>
+                  <SelectValue placeholder="Selecciona tu sexo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Masculino">Masculino</SelectItem>
+                  <SelectItem value="Femenino">Femenino</SelectItem>
+                  <SelectItem value="Otro">Otro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="education" className={labelStyle}>Nivel Educativo:</Label>
+            <Input id="education" name="education" value={formData.education} onChange={handleInputChange} className={inputStyle} placeholder="Ej: Secundaria, Universitario, etc."/>
+          </div>
+          <div>
+            <Label htmlFor="position" className={labelStyle}>Cargo Actual (Opcional):</Label>
+            <Input id="position" name="position" value={formData.position} onChange={handleInputChange} className={inputStyle} placeholder="Tu cargo"/>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Cuestionario</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600">Para cada par de frases, distribuye 3 puntos entre las dos opciones (A y B) según tu preferencia. Puedes asignar (3A, 0B), (2A, 1B), (1A, 2B), o (0A, 3B).</p>
+          {preguntas.map((par, index) => (
+            <div key={index} className="p-3 border rounded-md shadow-sm bg-gray-50">
+              <p className="text-sm font-medium mb-2">Pregunta {index + 1}:</p>
+              <div className="grid grid-cols-12 gap-2 items-center">
+                <div className="col-span-5">
+                  <Label htmlFor={`q${index}a`} className="text-xs text-gray-700">{par[0]} (A)</Label>
+                </div>
+                <div className="col-span-2">
+                  <Input
+                    id={`q${index}a`}
+                    type="number"
+                    min="0"
+                    max="3"
+                    value={formData.responses[index].a}
+                    onChange={(e) => handleResponseChange(index, e.target.value)}
+                    className={`${inputStyle} text-center ${formData.invalids[index] ? 'border-red-500' : ''}`}
+                    placeholder="A"
+                  />
+                </div>
+                 <div className="col-span-5">
+                  <Label htmlFor={`q${index}b`} className="text-xs text-gray-700">(B) {par[1]}</Label>
+                   {/* El valor B se calcula automáticamente, así que no necesita un input directo si esa es la lógica deseada.
+                       Si se quisiera mostrarlo, se podría hacer así:
+                       <Input id={`q${index}b`} type="number" value={formData.responses[index].b} readOnly className={`${inputStyle} text-center bg-gray-100`} /> 
+                   */}
+                   <p className="text-sm text-center mt-1">B: <span className="font-semibold">{formData.responses[index].b !== "" ? formData.responses[index].b : "-"}</span></p>
+                </div>
+              </div>
+              {formData.invalids[index] && <p className="text-red-500 text-xs mt-1">Valor A debe ser entre 0 y 3.</p>}
+            </div>
+          ))}
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleSubmit} className="w-full md:w-auto">Calcular Resultados</Button>
+        </CardFooter>
+      </Card>
+
+      {results && (
+        <Card ref={resultsCardRef}>
+          <CardHeader>
+            <CardTitle>Resultados del Cuestionario VALANTI</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className={`${labelStyle} text-lg`}>Puntajes Directos:</h3>
+              <ul className="list-disc list-inside">
+                {Object.entries(results.directScores).map(([key, value]) => (
+                  <li key={key}><span className="font-semibold">{key}:</span> {value}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className={`${labelStyle} text-lg`}>Puntajes Estándar:</h3>
+              <ul className="list-disc list-inside">
+                {Object.entries(results.standardScores).map(([key, value]) => (
+                  <li key={key}><span className="font-semibold">{key}:</span> {value}</li>
+                ))}
+              </ul>
+            </div>
+             <div className="my-4">
+                <h3 className={`${labelStyle} text-lg mb-2`}>Gráfico de Perfil Valoral:</h3>
+                <div style={{ position: 'relative', height: '300px', width: '100%', maxWidth: '500px', margin: 'auto' }}> {/* Ajusta height y maxWidth */}
+                    <canvas ref={chartRef} id="radar-chart-valanti"></canvas> {/* id es opcional si usas ref */}
+                </div>
+            </div>
+            <div>
+              <h3 className={`${labelStyle} text-lg`}>Interpretación:</h3>
+              <p className="text-gray-800">{results.interpretation}</p>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={handleDownloadPDF} className="w-full md:w-auto">Descargar Resultados en PDF</Button>
+          </CardFooter>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default ValantiApp;
