@@ -2,18 +2,23 @@
 import React, { useState, useRef, useEffect } from "react";
 
 // Componentes UI
-import { Button } from "./components/ui/button";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
   CardFooter,
-} from "./components/ui/card";
-
-import { Input } from "./components/ui/input";
-import { Label } from "./components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Librerías para PDF y gráficos
 import html2canvas from "html2canvas";
@@ -52,7 +57,10 @@ ChartJS.register(
 const labelStyle = "font-semibold text-gray-700 block mb-1";
 const inputStyle = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50";
 
-// Datos del cuestionario
+/**
+ * Datos del cuestionario VALANTI
+ * Cada elemento del array contiene un par de frases [A, B] para cada pregunta
+ */
 const preguntas = [
   // Primera parte - Preguntas 1-9
   ["Muestro dedicación a las personas que amo", "Actuo con perseverancia"],
@@ -100,11 +108,11 @@ const ValantiApp = () => {
   
   // Estado para el formulario
   const [formData, setFormData] = useState({
-    nombre: "",
-    edad: "",
-    sexo: "",
-    educacion: "",
-    cargo: "",
+    name: "",
+    age: "",
+    sex: "",
+    education: "",
+    position: "",
     responses: Array(preguntas.length).fill({ a: "", b: "" }),
     invalids: Array(preguntas.length).fill(false),
   });
@@ -118,7 +126,7 @@ const ValantiApp = () => {
   
   // Referencias para el gráfico y resultados
   const chartRef = useRef(null);
-  const resultsCardRef = useRef(null);
+  const resultRef = useRef(null);
 
   // =========================================================================
   // EFECTOS
@@ -141,7 +149,7 @@ const ValantiApp = () => {
           labels: Object.keys(results.standardScores),
           datasets: [
             {
-              label: formData.nombre || "Resultado",
+              label: formData.name || "Resultado",
               data: Object.values(results.standardScores),
               backgroundColor: "rgba(30, 64, 175, 0.2)",
               borderColor: "#1e40af",
@@ -186,7 +194,7 @@ const ValantiApp = () => {
         window.radarChartValanti.destroy();
       }
     };
-  }, [results, formData.nombre]);
+  }, [results, formData.name]);
 
   // =========================================================================
   // MANEJADORES DE FORMULARIO
@@ -194,6 +202,7 @@ const ValantiApp = () => {
   
   /**
    * Maneja cambios en campos de texto
+   * @param {Event} e - Evento del cambio
    */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -202,6 +211,8 @@ const ValantiApp = () => {
 
   /**
    * Maneja cambios en campos de selección
+   * @param {string} name - Nombre del campo
+   * @param {string} value - Valor seleccionado
    */
   const handleSelectChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
@@ -210,14 +221,18 @@ const ValantiApp = () => {
   /**
    * Maneja cambios en respuestas del cuestionario
    * Valida que los valores estén entre 0 y 3, y calcula automáticamente el valor B
+   * @param {number} index - Índice de la pregunta
+   * @param {string} field - Campo (a o b)
+   * @param {string} value - Valor ingresado
    */
-  const handleResponseChange = (index, value) => {
+  const handleResponseChange = (index, field, value) => {
     const numValue = parseInt(value);
     const updatedInvalids = [...formData.invalids];
     const updatedResponses = [...formData.responses];
 
     if (isNaN(numValue) || numValue < 0 || numValue > 3) {
       updatedInvalids[index] = true;
+      alert("Por favor ingrese un valor entre 0 y 3.");
     } else {
       updatedInvalids[index] = false;
       updatedResponses[index] = { 
@@ -239,9 +254,13 @@ const ValantiApp = () => {
    */
   const handleSubmit = () => {
     // Validar campos de información personal
-    const hasEmptyFields = Object.values(formData)
-      .slice(0, 5) // Solo los primeros 5 campos de información personal
-      .some(value => typeof value === 'string' && value.trim() === "");
+    const hasEmptyFields = [
+      formData.name,
+      formData.age,
+      formData.sex,
+      formData.education,
+      formData.position
+    ].some(value => typeof value === 'string' && value.trim() === "");
 
     if (hasEmptyFields) {
       alert("Por favor complete todos los campos de información personal.");
@@ -272,6 +291,8 @@ const ValantiApp = () => {
   
   /**
    * Obtiene interpretación de resultados basada en puntajes estándar
+   * @param {Object} standardScores - Puntajes estándar por valor
+   * @returns {string} - Interpretación de resultados
    */
   const getInterpretation = (standardScores) => {
     const entries = Object.entries(standardScores);
@@ -383,13 +404,13 @@ const ValantiApp = () => {
   
     // Información personal
     pdf.setFontSize(10);
-    pdf.text(`Nombre: ${formData.nombre}`, margin, y);
-    pdf.text(`Edad: ${formData.edad}`, pageWidth / 2, y);
+    pdf.text(`Nombre: ${formData.name}`, margin, y);
+    pdf.text(`Edad: ${formData.age}`, pageWidth / 2, y);
     y += 7;
-    pdf.text(`Sexo: ${formData.sexo}`, margin, y);
-    pdf.text(`Educación: ${formData.educacion}`, pageWidth / 2, y);
+    pdf.text(`Sexo: ${formData.sex}`, margin, y);
+    pdf.text(`Educación: ${formData.education}`, pageWidth / 2, y);
     y += 7;
-    pdf.text(`Cargo: ${formData.cargo}`, margin, y);
+    pdf.text(`Cargo: ${formData.position}`, margin, y);
     y += 10;
   
     // Respuestas del cuestionario
@@ -472,14 +493,14 @@ const ValantiApp = () => {
     }
     
     // Guardar PDF
-    pdf.save(`valanti-resultados-${formData.nombre.replace(/\s+/g, '_') || 'usuario'}.pdf`);
+    pdf.save(`valanti-resultados-${formData.name.replace(/\s+/g, '_') || 'usuario'}.pdf`);
   };
   
   // =========================================================================
   // RENDERIZADO DEL COMPONENTE
   // =========================================================================
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="max-w-5xl mx-auto p-4 space-y-6">
       {/* Formulario de información personal */}
       <Card>
         <CardHeader>
@@ -487,11 +508,11 @@ const ValantiApp = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="nombre" className={labelStyle}>Nombre Completo:</Label>
+            <Label htmlFor="name" className={labelStyle}>Nombre Completo:</Label>
             <Input 
-              id="nombre" 
-              name="nombre" 
-              value={formData.nombre} 
+              id="name" 
+              name="name" 
+              value={formData.name} 
               onChange={handleInputChange} 
               className={inputStyle} 
               placeholder="Tu nombre"
@@ -500,23 +521,23 @@ const ValantiApp = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="edad" className={labelStyle}>Edad:</Label>
+              <Label htmlFor="age" className={labelStyle}>Edad:</Label>
               <Input 
-                id="edad" 
-                name="edad" 
+                id="age" 
+                name="age" 
                 type="number" 
-                value={formData.edad} 
+                value={formData.age} 
                 onChange={handleInputChange} 
                 className={inputStyle} 
                 placeholder="Tu edad"
               />
             </div>
             <div>
-              <Label htmlFor="sexo" className={labelStyle}>Sexo:</Label>
+              <Label htmlFor="sex" className={labelStyle}>Sexo:</Label>
               <Select 
-                name="sexo" 
-                onValueChange={(value) => handleSelectChange('sexo', value)} 
-                value={formData.sexo}
+                name="sex" 
+                onValueChange={(value) => handleSelectChange('sex', value)} 
+                value={formData.sex}
               >
                 <SelectTrigger className={inputStyle}>
                   <SelectValue placeholder="Selecciona tu sexo" />
@@ -531,11 +552,11 @@ const ValantiApp = () => {
           </div>
           
           <div>
-            <Label htmlFor="educacion" className={labelStyle}>Nivel Educativo:</Label>
+            <Label htmlFor="education" className={labelStyle}>Nivel Educativo:</Label>
             <Input 
-              id="educacion" 
-              name="educacion" 
-              value={formData.educacion} 
+              id="education" 
+              name="education" 
+              value={formData.education} 
               onChange={handleInputChange} 
               className={inputStyle} 
               placeholder="Ej: Secundaria, Universitario, etc."
@@ -543,11 +564,11 @@ const ValantiApp = () => {
           </div>
           
           <div>
-            <Label htmlFor="cargo" className={labelStyle}>Cargo Actual:</Label>
+            <Label htmlFor="position" className={labelStyle}>Cargo Actual:</Label>
             <Input 
-              id="cargo" 
-              name="cargo" 
-              value={formData.cargo} 
+              id="position" 
+              name="position" 
+              value={formData.position} 
               onChange={handleInputChange} 
               className={inputStyle} 
               placeholder="Tu cargo"
@@ -593,7 +614,7 @@ const ValantiApp = () => {
                     min="0"
                     max="3"
                     value={formData.responses[index].a}
-                    onChange={(e) => handleResponseChange(index, e.target.value)}
+                    onChange={(e) => handleResponseChange(index, 'a', e.target.value)}
                     className={`${inputStyle} text-center ${formData.invalids[index] ? 'border-red-500' : ''}`}
                     placeholder="A"
                   />
@@ -625,7 +646,7 @@ const ValantiApp = () => {
 
       {/* Resultados */}
       {results && (
-        <Card ref={resultsCardRef}>
+        <Card ref={resultRef}>
           <CardHeader>
             <CardTitle>Resultados del Cuestionario VALANTI</CardTitle>
           </CardHeader>
@@ -651,20 +672,19 @@ const ValantiApp = () => {
             <div>
               <h3 className={`${labelStyle} text-lg mb-2`}>Gráfico de Perfil Valoral:</h3>
               <div style={{ position: 'relative', height: '300px', width: '100%', maxWidth: '500px', margin: 'auto' }}>
-                <canvas ref={chartRef} id="radar-chart-valanti"></canvas>
+                <canvas ref={chartRef} id="radarChart"></canvas>
               </div>
             </div>
             
             <div>
               <h3 className={`${labelStyle} text-lg`}>Interpretación:</h3>
-              <p className="text-gray-800">{results.interpretation}</p>
+              <p className="text-gray-700">{results.interpretation}</p>
             </div>
-          </CardContent>
-          <CardFooter>
-            <Button onClick={handleDownloadPDF} className="w-full md:w-auto">
+            
+            <Button onClick={handleDownloadPDF} className="mt-4">
               Descargar Resultados en PDF
             </Button>
-          </CardFooter>
+          </CardContent>
         </Card>
       )}
     </div>
@@ -672,5 +692,3 @@ const ValantiApp = () => {
 };
 
 export default ValantiApp;
-
-
